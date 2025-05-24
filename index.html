@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sar.s1d</title>
+    <meta name="description" content="hey, i'm sarthak sidhant! this is my website">
+    <meta name="keywords" content="sarthak, sidhant, sarthak sidhant, s1d.me, s1dhant">
+    <meta name="author" content="sarthaksidhant">
+
+    <meta property="og:title" content="sarthak sidhant">
+    <meta property="og:description" content="hey, i'm sarthak sidhant! this is my website">
+    <meta property="og:image" content="static/image.jpg">
+    <meta property="og:url" content="https://sar.s1d.me">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" href="static/image.jpg" type="image/x-icon"> <!-- Ensure image.jpg exists -->
+    <link rel="stylesheet" href="static/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            display: block;
+            background-color: #000000;
+        }
+        body {
+            margin: 0;
+            background-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="card">
+        <div class="profile">
+            <div class="profile-picture">
+                <img src="static/image.png" alt="Sarthak Sidhant's handsome looking profile picture">
+            </div>
+            <div class="profile-header">
+                <h1>hey! <br> i'm <span style="color:gold">sar</span>thak <span style="color:aqua">sid</span>hant!</h1>
+                <div class="aka">aka <span class="aka-name">sarthak</span> / <span class="aka-name">sidhant</span> / <span class="aka-name">sar.s1d</span></div>
+                <div class="pronouns">Ranchi, Jharkhand, India 🇮🇳 - GMT +5:30 - he/him</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <nav class="navigation">
+                <a href="#" class="nav-button" data-target="home-page">home</a>
+                <a href="#" class="nav-button" data-target="info-page">info</a>
+                <a href="#" class="nav-button" data-target="projects-page">projects</a>
+                <a href="#" class="nav-button" data-target="hireme-page">hire me</a>
+                
+                <a href="#" class="nav-button" data-target="socials-page">socials</a>
+            </nav>
+
+            <div class="page-content-wrapper">
+                <div id="home-page" class="page-content active">
+                    <p class="intro">
+                        welcome to my pseudo-portfolio, my corner of the wonderful <span class="highlight">s1d.me</span> which is in some corner of the internet.
+                        <br><br> i'm <span class="highlight">sarthak sidhant</span>; im a tech nerd who loves tinkering and grokking.
+                        <br><br>my dream is to create software that impacts people and hardware that impacts cows (preferably positively)
+                    </p>
+                    <div class="section">
+                        <h2>My Top Projects</h2>
+                        <div class="tags">
+                            <a href="https://s1d.me" target="_blank" class="tag project">s1d.me</a>
+                            <a href="https://sarthaksidhant.com/redstalk" target="_blank" class="tag project">redstalk</a>
+                            <a href="https://dpsbk.github.io" target="_blank" class="tag project">dpsbk</a>
+                            <a href="https://github.com/go-cattle/cow" target="_blank" class="tag project">go-cattle</a>
+                            <a href="https://sofusdela.sarthaksidhant.com" target="_blank" class="tag project">sofusdela</a>
+                            <span class="tag-placeholder">... and a lot more to come</span>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <h2>My Skills</h2>
+                        <div class="tags">
+                            <span class="tag skill">procrastinating</span>
+                            <span class="tag skill">programming</span>
+                            <span class="tag skill">grokking</span>
+                            <span class="tag skill">cybersecurity</span>
+                            <span class="tag skill">marketing</span>
+                            <span class="tag skill">homelabbing</span>
+                            <span class="tag skill">stalking</span>
+                            <span class="tag skill">existing</span>
+                            <span class="tag skill">humor /jk</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="socials-page" class="page-content">
+                    <h2>My Socials</h2>
+                    <p>ranked in the order of activeness</p>
+                    <ul class="content-list">
+                        <li><a href="https://x.com/sarthaksidhant_" target="_blank" class="highlight external-link">X (fka Twitter)</a></li>
+                        <li><a href="https://reddit.com/u/sarthaksidhant" target="_blank" class="highlight external-link">Reddit</a></li>
+                        <li><a href="https://github.com/sarthak-sidhant" target="_blank" class="highlight external-link">GitHub</a></li>
+                        <li><a href="https://instagram.com/sarthak_sidhant" target="_blank" class="highlight external-link">Instagram</a></li>
+                        <li><a href="https://linkedin.com/in/sarthaksidhant" target="_blank" class="highlight external-link">LinkedIn</a></li>
+                        <li><a href="mailto:sar@s1d.me" class="highlight">Email: sar@s1d.me</a></li>
+                    </ul>
+                    <br>
+                    <p class="additional-info">"social media bad"</p>
+                </div>
+
+                <div id="info-page" class="page-content">
+                    <h2>More Info About Me</h2>
+                    <p>I am Sarthak Sidhant, I like technology. and that's all that to say about me. if there is, i can't put it into words myself.
+                        <p class="additional-info">my last social interaction was with my homelab server</p>
+                        <br>
+                        I like programming because i get to make things i like, and i get to solve problems. I like to make software that breaks more often, (because i get to be on my lovely computer to fix them) I like to make bad looking websites. I like to atleast be a little creative, and I like doing things for the sake of me. (narcissist much?)
+                        <br><br>
+                        Someone smart would call it impulse. I call it obsession, I am obsessed with me. so all the things i make, or have ever made, I felt the need to do that because I wanted to see that change.
+                        <p class="additional-info">One could argue that, "well you clearly aren't self centered with go-cattle huh", yeah shit sherlock - I AM A COW. MOOOO.</p>
+                        I was destined to do something related to computers, Both my parents were "computer engineers" when personal computers were launched in india, I had the experience of using the internet when a huge population of India had no access to it, I was using a mouse at 3 months old (atleast that's what my mother tells me), making official letters on MS Word at 6, and learning to code HTML websites at 9. 
+                        <br>
+                        <p class="additional-info"> A little too early for everything, but I have always been like that. So "How did I get into coding" questions, here's your straightforward answer: I got into computers, I got into Technology in general, and I wanted to make my own things. Learnt HTML and CSS by 12 on random youtube tutorials, Learnt Python at 13 and then took help from whoever I could. The Digital Realm is a big big space.</p>
+                        <br>
+                        I am still an average developer, I make random people on the internet (and recently Gemini-2.5-Pro) do all my work /jk, it makes things very easy for me. my code is not readable by many, people are as confused as I am when they learn about my projects. I think my projects only work because they are as confused as i am.
+                        <p class ="additional-info"> and no i don't manage my time, I suck with that. the last time i studied for 2 hours continuously was 2 years ago. I can't learn something I am not passionate about. (eg: Organic Chemistry for JEE Mains)</p>
+                        Yeah that's pretty much about me, I like chess sometimes, and when I am not on computer, I am either sleeping or thinking.
+                        <br>
+                        but again, since I believe people are just a bunch of thoughts, here are mine, summed up by redstalk, the reddit profiler:
+                     </p>
+                     <style>
+                        .points {
+                        list-style: none;
+                        padding: 0;
+                        margin-bottom: 6px;
+                        font-size: 1.05em;
+                        }
+
+                        .points li {
+                        position: relative;
+                        padding-left: 20px; /* Space for the pseudo-bullet */
+                        margin-bottom: 12px;
+                        color: #999;
+                        }
+
+                        .points li::before {
+                        content: '•'; /* Unicode bullet character */
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        color: #bbb; /* Lighter color for the bullet */
+                        font-size: 0.8em; /* Smaller bullet */
+                        line-height: inherit; /* Align with text */
+                        }
+
+                        .points li:hover {
+                        color: #1fd655; /* A slightly darker blue on hover */
+}
+                     </style>
+                     <ul class="points">
+                        <li>I have an endless desire for self expression. This is why I try to give all interviews I can. and am writing this at 12:51 AM on a sunday night.</li>
+                        <li>I think am very Opinionated and Assertive online, but I do sometimes lack confidence to say that clearly in real life, probably because the internet persona has given me the power to say anything I want, to anyone I want without repurcussions, but the same doesn't follow in real life.</li>
+                        <li>I do lack a belief system, that is you could call me an atheist. I now have a very rational approach of living life and thinking. I have never really believed in the bullshit my ancestors came up with (rationally albeit) 3 thousand years ago, but I think we should have a progressive view, and yeah science good. change good.</li>
+                        <li>Liberty, Equality and Fraternity. Freedom of Everything (some regulation sure) until you encroach on someone's freedom.</li>
+                        <li>No, I do not like religions. I do think it is a tool to control a large sect of society. I think culture can exist without religions, and Culture isn't that bad afterall. Every system needs some change.</li>
+                        <li>I do try my best to uphold free speech, especially when provided with power. "I disapprove of what you say, but I will defend to death your right to say it" Until it gets into the territory of super-harassment, I think there should be repurcussions for the People with high Popularity on what they speak though.</li>
+                        <li>I am known as the Mettle Bottle Man on Reddit. (you can search up "METTLE BOTTLE REDDIT" on google), This is partly because I lost my bottle and posted "missing" posters of my bottle in majority of india subreddits and they got quite popular, this shows im really attached to my mettle bottle (sorry for that humor)</li>
+                        <li>I do not come from the homogametic sex (the females) but I do have severe mood swings, and i am very impulsive. I do things at the heat of the moment because I like doing them, i might repent doing them later</li>
+                        <li>I was raised by the internet. I am the Internet's kid. Blame it on the internet</li>
+                        <li>I am who I am. I won't change myself for you or present a multifaceted "dogla"/"twoface", I would be kind, and accepting of your opinion, and thoughts, even if they go against the core idea of mine (important: don't encroach other's freedom)</li>
+                        <li>I do express a disillusionment with society in general, I express skepticism towards instutiions, I emphasize on critical thinking, I believe in a human being's potential, and Redstalk thinks I strong support "social justice", whatever that is.</li>
+                        <li>Humor is my coping mechanism</li>
+                        <li> I tried getting more social in the past days and I am not an imtrovert anymore tho. But my idea of society is very french revolution, so I can't really talk with the opposite sex as of right now (call me an incel go ahead)</li>
+                        <li> Oh and I hate the idea of centralization, necessary evil, much? </li>
+                     </ul>
+                        
+                        <p class="additional-info">That's the deepest I could express myself. Thanks for your time.</p>
+                    <p class="additional-info">~ 25th May 2025</p>
+                </div>
+
+                <div id="projects-page" class="page-content">
+                    <h2>My Latest Projects</h2>
+                    
+                    <p>a heavenly view to look at some of the things i have built and/or building. please hit me up if you want to collaborate. for the full list, please visit my <a href="https://github.com/sarthak-sidhant?tab=repositories" target="_blank" class="highlight external-link">gitHub profile</a>.
+                        
+                    </p>
+                    <hr><br>
+                    
+                    <div class="project-entry section">
+                        <h4>s1d.me (the global hub)</h4>
+                        <p>currently, just a URL shortener and personal hub. but this will definitely be improved, as im working on integrating it with bigger projects like a pastebin, image host, some sort of file sharing, messaging, canvas and stuff, Just to perfect my webdev skills, yeah. currently Built with Python, Flask and a simple SQLite backend.</p>
+                        <a href="https://s1d.me" target="_blank" class="tag project project-link-standalone">visit s1d.me (you're on it rn)</a>
+                    </div>
+
+                    <hr><br>
+                    <div class="project-entry section">
+                        <h4>redstalk</h4>
+                        <p>stalking people on reddit made easier. simply put a gemini wrapper for people on reddit, to present people's analysis, but complicatedly put, lots of work and a lot bigger project than you would expect<br>Prawstalk was a project under the redstalk umbrella. it attached the user's analysis into pastebin, scraped stuff using praw, scraped user comments requesting an analysis, and commented them. TOTALLY AUTOMATED</p>
+                        <a href="https://sarthaksidhant.com/redstalk" target="_blank" class="tag project project-link-standalone">check out redstalk</a>
+                    </div>
+                    <hr><br>
+
+                    <div class="project-entry section">
+                        <h4>sofusdela</h4>
+                        <p>secret opening in the fortress. uncovering a school's data exposure. a lesson for all. (pls read)</p>
+                        <a href="https://sofusdela.sarthaksidhant.com" target="_blank" class="tag project project-link-standalone">s.o.f.u.s.d.e.l.a.</a>
+                    </div>
+                    <hr><br>
+
+                    <div class="project-entry section">
+                        <h4>go-cattle</h4>
+                        <p>some sort of total encompasse platforme en la cows - i randomly started speaking french there, or i made words up idc<br> Go-Cattle was featured in CRSE, go-cattle is the go-to solutions for cows. it featured a hardware segment called "COW" acronym for Cattle Optimization Workstation, which went around a cow's neck and tracked important metrics, that helped determine diseases in cows, using symptoms, that was made possible by Anomaly and KNN. then there was a CV-CNN based model that predicted visual diseases (something we can spot from outside/like from the skin area) in cows, like FMD/IBK/LSD. Then a symptom based classification model was made, and the entire project was called go-cattle. we came third :( biased judges tbh (lmao im a crybaby) anyway, so yeah that's it, we were approved by a vet doctor w 30 years of experience in the government btw</p>
+                        <a href="https://github.com/go-cattle/cow" target="_blank" class="tag project project-link-standalone">View on GitHub</a>
+                    </div>
+                </div>
+
+                <div id="hireme-page" class="page-content">
+                    <h2>Hire Me / Collaborate</h2>
+                    <p>I'm open to new and opportunities that I deem exciting. I will collaborate if you ask nicely* hmu and talk to me about things please im lonely</p> <br>
+                    <p class="additional-info">if you have a project in mind, a role you think I'd be the best fit for, (since i am the best fit for all roles at good pay so i don't think specializing that was needed) or just want to connect (#letsconnect), please feel free to reach out!!!</p>
+                    <ul class="content-list">
+                        <li><strong>Email:</strong> <a href="mailto:sark@s1d.me" class="highlight">sar@s1d.me</a></li>
+                        <li><strong>LinkedIn:</strong> <a href="https://linkedin.com/in/sarthaksidhant" target="_blank" class="highlight external-link">linkedin.com/in/sarthaksidhant</a></li>
+                    </ul>
+                    <p class="additional-info">I'm particularly interested in roles related to python stuff, backend development, cybersecurity, project management, and marketing. I enjoy working on challenging problems, and creative stuff. because that's what i like and that's what i am</p>
+                    <p><a href="https://github.com/Sarthak-Sidhant/Sarthak-Sidhant/blob/main/resume.pdf" target="_blank" class="tag project project-link-standalone">Download My Resume</a></p> 
+                </div>
+            </div> <!-- End of .page-content-wrapper -->
+
+            <div class="footer">
+                <p>sar.s1d.me &copy; 2025; and open source on <a href="https://github.com/" target="_blank" class="github-link">github</a></p>
+            </div>
+        </div> <!-- End of .content -->
+    </div> <!-- End of .card -->
+
+    <script type="module" src="static/script.js"></script>
+    <script src="static/cmatrix.js"></script>
+</body>
+</html>
