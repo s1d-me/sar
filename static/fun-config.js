@@ -13,13 +13,15 @@ export const funConfig = {
         skillSelector: '.tag.skill',
         tooltipClass: 'system-tooltip',
         tooltipMessages: {
-            'procrastinating': 'System Status: Task deferral protocols active.\nPriority: High (eventually).',
-            'programming': 'Compiling v42.6...\nSyntax error on line 1 (JK).',
-            'grokking': 'Deep understanding achieved.\nSubjective reality matrix updated.',
-            'cybersecurity': 'Firewall active.\nThreat level: Caffeinated Squirrel.',
-            'marketing': 'Engaging synergy...\nMaximizing paradigm shifts...\nMore buzzwords!',
-            'homelabbing': 'Network Status: Mostly stable.\nBlinking lights: Sufficient.',
-            'stalking': 'what do you think i use my homelab for\nyour ip address is 192.168.1.7.'
+            'procrastinating': 'System Status: i just dont want to do anything\nPriority: High (eventually).',
+            'programming': 'Interpreting not Compiling\nSyntax error on line 1 (real).',
+            'grokking': 'Deep*shit* understanding achieved.\n All reality is me.',
+            'cybersecurity': 'starts flexing about how i hacked my school using APi endpoints..',
+            'marketing': '"aaloo lelo; kaanda lelo" \n ~ nana patekar, welcome',
+            'homelabbing': 'Network Status: Mostly never stable.\nBlinking lights: not sufficient.',
+            'stalking': 'what do you think i use my homelab for\nyour ip address is 192.168.1.7.',
+            'existing': 'uhhh how do i explain it... so theres this idea of things that you just are',
+            'humor /jk': 'you have a very bad ass hair! \n\n Bad ASs hair"
         },
         offsetX: 10,
         offsetY: 20
