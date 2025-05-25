@@ -21,7 +21,7 @@ export const funConfig = {
             'homelabbing': 'Network Status: Mostly never stable.\nBlinking lights: not sufficient.',
             'stalking': 'what do you think i use my homelab for\nyour ip address is 192.168.1.7.',
             'existing': 'uhhh how do i explain it... so theres this idea of things that you just are',
-            'humor /jk': 'you have a very bad ass hair! \n\n Bad ASs hair"
+            'humor /jk': 'you have a very bad ass hair! \n\n Bad ASs hair",
         },
         offsetX: 10,
         offsetY: 20
