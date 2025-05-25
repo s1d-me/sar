@@ -1,5 +1,5 @@
 // static/fun-features.js
-import { funConfig } from './fun-config.js';
+import { funConfig } from 'https://sar.s1d.me/static/fun-config.js';
 
 // --- Debounce Utility ---
 function debounce(func, wait) {

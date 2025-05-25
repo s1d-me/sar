@@ -2,13 +2,13 @@
 
 // --- IMPORT FUN FEATURES AND CONFIG ---
 // Ensure these paths are correct and the files export the named entities.
-import { funConfig } from './fun-config.js'; // Assuming fun-config.js exports 'funConfig'
+import { funConfig } from 'https://sar.s1d.me/static/fun-config.js'; // Assuming fun-config.js exports 'funConfig'
 import {
     initGlitchEffectOnHover,
     initSystemTooltips,
     initAnimatedCaret,
     initDecoderEffect
-} from './fun-features.js'; 
+} from 'https://sar.s1d.me/static/fun-features.js'; 
 
 
 
