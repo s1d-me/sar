@@ -14,11 +14,12 @@
     <meta property="og:url" content="https://sar.s1d.me">
     <meta property="og:type" content="website">
 
-    <link rel="icon" href="https://sar.s1d.me/static/image.jpg" type="image/x-icon"> <!-- Ensure image.jpg exists -->
-    <link rel="stylesheet" href="https://sar.s1d.me/static/styles.css">
+    <link rel="icon" href="./static/image.jpg" type="image/x-icon"> <!-- Ensure image.jpg exists -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Added font-display: swap -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./static/styles.css">
 
     <style>
         #matrixCanvas {
@@ -33,6 +34,7 @@
         }
         body {
             margin: 0;
+            /* overflow-x: hidden; might help if card causes horizontal scroll on mobile */
             background-color: transparent;
         }
     </style>
@@ -43,7 +45,8 @@
     <div class="card">
         <div class="profile">
             <div class="profile-picture">
-                <img src="https://sar.s1d.me/static/image.png" alt="Sarthak Sidhant's handsome looking profile picture">
+                <!-- Added width, height, and loading="lazy" (though likely above fold) -->
+                <img src="./static/image.png" alt="Sarthak Sidhant's handsome looking profile picture" width="65" height="65" loading="lazy">
             </div>
             <div class="profile-header">
                 <h1>hey! <br> i'm <span style="color:gold">sar</span>thak <span style="color:aqua">sid</span>hant!</h1>
@@ -230,12 +233,13 @@
             </div> <!-- End of .page-content-wrapper -->
 
             <div class="footer">
-                <p>sar.s1d.me &copy; 2025; and open source on <a href="https://github.com/" target="_blank" class="github-link">github</a></p>
+                <p>sar.s1d.me © 2025; and open source on <a href="https://github.com/" target="_blank" class="github-link">github</a></p>
             </div>
         </div> <!-- End of .content -->
     </div> <!-- End of .card -->
 
-    <script type="module" src="https://sar.s1d.me/static/script.js"></script>
-    <script src="https://sar.s1d.me/static/cmatrix.js"></script>
+    <!-- Scripts moved to the end of body, type="module" for script.js implies defer -->
+    <script src="./static/cmatrix.js"></script>
+    <script type="module" src="./static/script.js"></script>
 </body>
 </html>

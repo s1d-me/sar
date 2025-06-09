@@ -2,18 +2,15 @@
 
 // --- IMPORT FUN FEATURES AND CONFIG ---
 // Ensure these paths are correct and the files export the named entities.
-import { funConfig } from 'https://sar.s1d.me/static/fun-config.js'; // Assuming fun-config.js exports 'funConfig'
+import { funConfig } from './fun-config.js'; // Assuming fun-config.js exports 'funConfig'
 import {
     initGlitchEffectOnHover,
     initSystemTooltips,
     initAnimatedCaret,
     initDecoderEffect
-} from 'https://sar.s1d.me/static/fun-features.js'; 
+} from './fun-features.js'; 
 
-
-
-
-console.log('sar.s1d script.js vFINAL_WITH_FUN loaded');
+// console.log('sar.s1d script.js loaded');
 
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -40,7 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
             profilePic.style.transform = `translateY(${floatPosition}px)`;
             requestAnimationFrame(floatAnimation);
         }
-        requestAnimationFrame(floatAnimation);
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            requestAnimationFrame(floatAnimation);
+        }
     }
 
     const akaNames = document.querySelectorAll('.aka-name');
@@ -51,12 +50,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const projectLinksWithRipple = document.querySelectorAll('.tag.project');
     projectLinksWithRipple.forEach(link => {
-        if (!link.classList.contains('nav-button')) {
+        if (!link.classList.contains('nav-button')) { 
             link.addEventListener('click', function(e) {
-                if (this.target === '_blank' || (this.getAttribute('href') && this.getAttribute('href').startsWith('#'))) {
-                    if (this.closest('.tags') && !this.getAttribute('href')) return;
-                } else if (!this.getAttribute('href') && !this.closest('a[href]')) {
-                    return;
+                const href = this.getAttribute('href');
+                if (!href || href === '#') {
+                    if (this.tagName.toLowerCase() !== 'a' && !this.closest('a[href]')) {
+                         e.preventDefault(); 
+                    } else if (href === '#') {
+                        e.preventDefault(); 
+                    }
                 }
 
                 const existingRipple = this.querySelector('.ripple-effect-span');
@@ -70,8 +72,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     backgroundColor: 'rgba(43, 182, 140, 0.35)',
                     pointerEvents: 'none', zIndex: '0'
                 });
-                this.style.position = 'relative'; this.style.overflow = 'hidden';
+                if (getComputedStyle(this).position === 'static') {
+                    this.style.position = 'relative';
+                }
+                this.style.overflow = 'hidden'; 
                 this.appendChild(ripple);
+
                 const rect = this.getBoundingClientRect();
                 const x = e.clientX - rect.left; const y = e.clientY - rect.top;
                 const size = Math.max(this.clientWidth, this.clientHeight);
@@ -91,8 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- FUN FEATURES INITIALIZATION ---
-    // Check if funConfig and its properties exist before calling functions
-    // The functions themselves are imported, so typeof check is for the imported function.
     if (funConfig?.glitchEffectOnHover?.enabled && typeof initGlitchEffectOnHover === 'function') {
         initGlitchEffectOnHover();
     }
@@ -100,12 +104,11 @@ document.addEventListener('DOMContentLoaded', function() {
         initSystemTooltips();
     }
     if (funConfig?.animatedCaret?.enabled && typeof initAnimatedCaret === 'function') {
-        initAnimatedCaret(); // Call it once, decoder might re-call it if it modifies the .aka container
+        initAnimatedCaret(); 
     }
     if (funConfig?.decoderEffect?.enabled && typeof initDecoderEffect === 'function') {
         initDecoderEffect();
     }
-
 
     // --- CARD NAVIGATION SCRIPT with HEIGHT ANIMATION ---
     const allNavButtons = document.querySelectorAll('.card .navigation .nav-button');
@@ -115,34 +118,49 @@ document.addEventListener('DOMContentLoaded', function() {
     let isPageSwitchAnimating = false;
     let currentActivePageId = null;
 
-    // Read durations from CSS Custom Properties
     const rootStyles = getComputedStyle(document.documentElement);
     const COLLAPSE_DURATION_MS = parseFloat(rootStyles.getPropertyValue('--animation-collapse-duration').trim() || '0.35s') * 1000;
     const EXPAND_DURATION_MS = parseFloat(rootStyles.getPropertyValue('--animation-expand-duration').trim() || '0.35s') * 1000;
 
-
+    // This function correctly handles hiding the active button
+    // and showing others. It works for any number of buttons
+    // as long as they are in `allNavButtons`.
     function updateNavigationButtonVisibility(activePageId) {
         allNavButtons.forEach(button => {
-            button.style.display = (button.dataset.target === activePageId) ? 'none' : '';
+            if (button.dataset.target === activePageId) {
+                button.classList.add('nav-button-hidden');
+            } else {
+                button.classList.remove('nav-button-hidden');
+            }
         });
     }
+    // Ensure you have CSS for .nav-button-hidden, e.g.:
+    // .nav-button-hidden { display: none !important; } /* or other hiding technique */
+    // This style should be in your main styles.css
+    if (!document.getElementById('nav-button-hidden-style')) {
+        const style = document.createElement('style');
+        style.id = 'nav-button-hidden-style';
+        style.textContent = '.nav-button-hidden { display: none !important; }';
+        document.head.appendChild(style);
+    }
+
 
     function setContentWrapperHeightCssVar(height) {
         contentWrapperForAnimation.style.setProperty('--content-wrapper-height', `${height}px`);
     }
 
     function animatePageSwitch(targetPageId) {
-        if (isPageSwitchAnimating) return;
+        if (isPageSwitchAnimating || !contentWrapperForAnimation) return;
         isPageSwitchAnimating = true;
 
-        const currentActivePageElement = document.getElementById(currentActivePageId);
+        const currentActivePageElement = currentActivePageId ? document.getElementById(currentActivePageId) : null;
 
         const currentWrapperHeight = contentWrapperForAnimation.scrollHeight;
         setContentWrapperHeightCssVar(currentWrapperHeight);
         contentWrapperForAnimation.style.height = `${currentWrapperHeight}px`;
-        contentWrapperForAnimation.style.opacity = '1';
+        contentWrapperForAnimation.style.opacity = '1'; 
 
-        requestAnimationFrame(() => {
+        requestAnimationFrame(() => { 
             contentWrapperForAnimation.classList.add('page-wrapper-is-collapsing');
             contentWrapperForAnimation.classList.remove('page-wrapper-is-expanding');
         });
@@ -155,15 +173,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const newTargetPageElement = document.getElementById(targetPageId);
             if (newTargetPageElement) {
                 newTargetPageElement.classList.add('active');
-
-                contentWrapperForAnimation.style.height = 'auto';
+                
+                contentWrapperForAnimation.style.height = 'auto'; 
                 const newContentHeight = newTargetPageElement.scrollHeight;
-
+                
                 setContentWrapperHeightCssVar(newContentHeight);
-                contentWrapperForAnimation.style.height = '0px';
+                contentWrapperForAnimation.style.height = '0px'; 
 
                 currentActivePageId = targetPageId;
-                updateNavigationButtonVisibility(currentActivePageId);
+                updateNavigationButtonVisibility(currentActivePageId); // THIS IS KEY
                 if (contentWrapperForAnimation) contentWrapperForAnimation.scrollTop = 0;
 
                 requestAnimationFrame(() => {
@@ -173,12 +191,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 setTimeout(() => {
                     contentWrapperForAnimation.classList.remove('page-wrapper-is-expanding');
-                    contentWrapperForAnimation.style.height = 'auto';
+                    contentWrapperForAnimation.style.height = 'auto'; 
                     isPageSwitchAnimating = false;
                 }, EXPAND_DURATION_MS);
             } else {
-                console.error("Target page for switch not found:", targetPageId);
                 isPageSwitchAnimating = false;
+                contentWrapperForAnimation.classList.remove('page-wrapper-is-collapsing');
+                contentWrapperForAnimation.style.height = 'auto';
+                if(currentActivePageElement) currentActivePageElement.classList.add('active');
             }
         }, COLLAPSE_DURATION_MS);
     }
@@ -194,25 +214,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function initializeCardView() {
+        if (!contentWrapperForAnimation) return;
+
         const initiallyActivePageElement = document.querySelector('.page-content.active');
         if (initiallyActivePageElement) {
             currentActivePageId = initiallyActivePageElement.id;
-            updateNavigationButtonVisibility(currentActivePageId);
-            contentWrapperForAnimation.style.height = 'auto';
-            const initialHeight = initiallyActivePageElement.scrollHeight;
-            contentWrapperForAnimation.style.height = `${initialHeight}px`;
-            setContentWrapperHeightCssVar(initialHeight);
-        } else if (allPageContentDivs.length > 0 && allNavButtons.length > 0) {
+        } else if (allNavButtons.length > 0) { // Fallback to first button's target if no page is active
             currentActivePageId = allNavButtons[0].dataset.target;
             const targetPage = document.getElementById(currentActivePageId);
             if (targetPage) {
                 targetPage.classList.add('active');
-                updateNavigationButtonVisibility(currentActivePageId);
-                contentWrapperForAnimation.style.height = 'auto';
-                const initialHeight = targetPage.scrollHeight;
-                contentWrapperForAnimation.style.height = `${initialHeight}px`;
-                setContentWrapperHeightCssVar(initialHeight);
             }
+        }
+        
+        // If a currentActivePageId is determined, update buttons and set height
+        if (currentActivePageId) {
+            updateNavigationButtonVisibility(currentActivePageId); // Crucial call
+            const activeElementForHeight = document.getElementById(currentActivePageId);
+            if (activeElementForHeight) {
+                 contentWrapperForAnimation.style.height = 'auto'; 
+                const initialHeight = activeElementForHeight.scrollHeight;
+                contentWrapperForAnimation.style.height = `${initialHeight}px`; 
+                setContentWrapperHeightCssVar(initialHeight);
+            } else { // Active page ID set, but element not found - problematic
+                contentWrapperForAnimation.style.height = '0px';
+                setContentWrapperHeightCssVar(0);
+            }
+        } else { // No active page determined (e.g., no buttons, no active page class)
+            contentWrapperForAnimation.style.height = '0px';
+            setContentWrapperHeightCssVar(0);
         }
     }
     initializeCardView();
@@ -221,15 +251,20 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', () => {
         clearTimeout(resizeDebounceTimeout);
         resizeDebounceTimeout = setTimeout(() => {
-            if (!isPageSwitchAnimating) {
-                const activePage = document.getElementById(currentActivePageId);
+            if (!isPageSwitchAnimating && contentWrapperForAnimation) {
+                const activePage = currentActivePageId ? document.getElementById(currentActivePageId) : null;
                 if (activePage && getComputedStyle(activePage).display !== 'none') {
+                    const originalTransition = contentWrapperForAnimation.style.transition;
                     contentWrapperForAnimation.style.transition = 'none';
-                    contentWrapperForAnimation.style.height = 'auto';
+                    
+                    contentWrapperForAnimation.style.height = 'auto'; 
                     const newHeight = activePage.scrollHeight;
-                    contentWrapperForAnimation.style.height = `${newHeight}px`;
+                    contentWrapperForAnimation.style.height = `${newHeight}px`; 
                     setContentWrapperHeightCssVar(newHeight);
-                    setTimeout(() => { contentWrapperForAnimation.style.transition = ''; }, 50);
+                    
+                    requestAnimationFrame(() => {
+                        contentWrapperForAnimation.style.transition = originalTransition;
+                    });
                 }
             }
         }, 200);
