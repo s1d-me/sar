@@ -39,6 +39,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    /* overflow-x: hidden;  Consider if card causes horizontal scroll on small screens */
     min-height: 100vh;
     padding: 20px;
     position: relative; /* For z-indexing context if needed */
@@ -50,7 +51,7 @@ body {
     border-radius: 16px;
     box-shadow: 0 10px 35px var(--card-shadow-color);
     border: 1px solid var(--card-border-color);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(10px); /* Slightly reduced blur for minor perf gain, test visuals */
     width: 100%;
     max-width: 550px;
     display: flex;
@@ -59,6 +60,7 @@ body {
     position: relative;
     z-index: 1; /* Ensures card is above the matrix canvas */
     animation: fadeInCard var(--animation-expand-duration) ease-out;
+    will-change: transform, opacity; /* Hint for initial fadeInCard animation */
     opacity:0.96;
 }
 
@@ -129,11 +131,12 @@ body {
     min-height: 0; /* Fix for flexbox overflow issues in some browsers */
 }
 
+
 .navigation {
     display: flex;
-    gap: 10px;
+    gap: 10px; /* This is the gap between buttons */
     margin-bottom: 20px;
-    flex-shrink: 0; /* Prevents navigation from shrinking */
+    flex-shrink: 0;
 }
 
 .nav-button {
@@ -144,16 +147,20 @@ body {
     text-decoration: none;
     transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.15s ease-out, box-shadow 0.25s ease;
     border: 1px solid var(--accent-primary);
-    flex-grow: 1; /* Allows buttons to grow and fill space */
-    flex-shrink: 1; /* Allows buttons to shrink if space is limited */
-    /* flex-basis aims for roughly equal width for 4 buttons, accounting for gaps */
-    flex-basis: calc(25% - 8px); /* (100% / 4 buttons) - approx_gap_share */
+    
+    /* --- Key change: Default to 1/5th width considering 5 potential buttons --- */
+    flex-grow: 1; /* Allow growing to fill space if fewer than 5 are visible and intended */
+    flex-shrink: 1;
+    /* Base this on 5 buttons, but with grow:1, it will expand if fewer are visible */
+    flex-basis: calc(20% - 8px); /* (100% / 5 buttons) - (4/5 * 10px gap) approx */
+                                  /* When 4 are visible, flex-grow:1 will make them expand to fill like calc(25% - X) */
+
     text-align: center;
     font-weight: 500;
-    font-size: 0.82rem;
-    position: relative; /* For pseudo-elements if any */
-    overflow: hidden; /* Clips content like ripple effects */
-    white-space: nowrap; /* Prevents text wrapping */
+    font-size: 0.80rem; 
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
     line-height: 1.4;
 }
 
@@ -163,25 +170,34 @@ body {
 .nav-button:hover {
     background-color: var(--btn-bg);
     border-color: var(--btn-hover-bg);
-    transform: translateY(-2px); /* Slight lift on hover */
+    transform: translateY(-2px);
     box-shadow: 0 3px 7px rgba(0,0,0,0.2);
 }
 .nav-button:active {
-    transform: translateY(-1px); /* Slight press effect */
+    transform: translateY(-1px);
     box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
 /* Responsive adjustments for navigation buttons */
-@media (max-width: 520px) { /* Breakpoint for 2x2 button layout */
+@media (max-width: 520px) { 
     .navigation {
-        flex-wrap: wrap; /* Allow buttons to wrap to the next line */
+        flex-wrap: wrap; 
         gap: 8px;
-        justify-content: space-between; /* Distributes space for 2x2 layout */
+        /* For 2x2 or 3x2 layout: */
+        /* If 5 buttons total, and one is hidden, we have 4.
+           If 5 buttons total, and we want 3 on first row, 2 on second:
+           button flex-basis might be calc(33.33% - X) for first 3,
+           or just rely on flex-wrap and let them flow.
+           For a consistent 2x2 (when 4 are visible):
+        */
+        justify-content: space-between; 
     }
     .nav-button {
-        flex-grow: 0; /* Prevent excessive growth in 2x2 */
-        flex-basis: calc(50% - 5px); /* Aim for 2 buttons per row */
-        font-size: 0.78rem;
+        /* When 4 buttons are visible, they should form a 2x2 grid */
+        /* When 5 buttons are visible (if you ever don't hide one), this would make a 2 then 3 layout */
+        flex-grow: 0; /* Don't let them grow excessively in wrapped layout */
+        flex-basis: calc(50% - 5px); /* Aim for 2 buttons per row (gap is 8px, so 8px/2 = 4px per item approx) */
+        font-size: 0.76rem; 
         padding: 7px 4px;
     }
 }
@@ -200,11 +216,11 @@ body {
         padding: 12px 20px 18px;
     }
 
-    /* Navigation for very small screens, maintains 2x2 layout */
+    /* Navigation for very small screens, maintains 2x2 if 4 are visible */
     .nav-button {
-        font-size: 0.75rem; /* Further reduce font size for smaller buttons */
+        font-size: 0.72rem; 
         padding: 6px 3px;
-        /* flex-basis from 520px breakpoint (calc(50% - 5px)) still applies for 2x2 */
+        /* flex-basis from 520px breakpoint (calc(50% - 5px)) still applies for 2x2 when 4 visible */
     }
 }
 

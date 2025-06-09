@@ -1,4 +1,3 @@
-// static/fun-config.js
 export const funConfig = {
     glitchEffectOnHover: {
         enabled: true,
@@ -33,31 +32,30 @@ export const funConfig = {
         nameClass: 'aka-name',
         caretHtml: '<span class="blinking-slash">/</span>'
     },
-    // static/fun-config.js
-    // ...
     decoderEffect: {
         enabled: true,
         targetSelectors: [
             '.profile-header h1',
             '.aka', // If enabled, caret will re-initialize after each decode cycle.
             '.pronouns',
-            //'.intro', // REMOVED by default. If you add, set preserveHTML: true & test.
             '.section h2',
             '.tag',
             '.nav-button',
-            '.footer p'
-
+            '.footer p',
+            // For '.intro', if it contains HTML like <span class="highlight">,
+            // preserveHTML: true is needed. The current decoder animates textContent
+            // and then restores innerHTML.
+            // '.intro', 
         ],
         chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+[];\',./<>?{}:"|',
         revealSpeed: 69,        // Time (ms) per character to reveal
         randomizeInterval: 25,  // Time (ms) between random character changes during scramble
-        initialDelay: 200,      // Base delay (ms) before the very first decoder starts.
-                                // Individual elements will get an additional random delay on top of this.
+        initialDelay: 150,      // Base delay (ms) applied to each element before its decoding sequence begins.
+                                // Random offsets are added on top of this per element.
         loopInterval: 0,        // e.g., 60000 for 1 min loop. 0 to disable.
-        preserveHTML: true,     // true is experimental. For `.intro`, you'd need this to be true.
-                                // When true, it attempts to restore innerHTML after text scramble/reveal.
-        dataAttributeOriginalHTML: 'data-original-innerHTML',
-        dataAttributeOriginalText: 'data-original-text-content'
-    }
-    // ...
+        preserveHTML: true,     // When true, it attempts to restore innerHTML after text scramble/reveal.
+                                // Animation primarily uses textContent, innerHTML restored at end.
+        dataAttributeOriginalHTML: 'data-original-innerHTML', // Not used by RAF decoder, but kept for potential future use
+        dataAttributeOriginalText: 'data-original-text-content' // Not used by RAF decoder
+    }    // ...
 };

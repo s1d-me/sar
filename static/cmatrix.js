@@ -1,5 +1,3 @@
-
-
 // Get the canvas element and its 2D rendering context
 const canvas = document.getElementById('matrixCanvas');
 const ctx = canvas.getContext('2d');
@@ -53,6 +51,10 @@ window.addEventListener('mousemove', (e) => {
 let columns; // Number of character columns based on canvas width
 let matrixCharacters = []; // Array to hold all active green matrix character objects
 
+// --- Cached values for performance ---
+let halfCanvasWidth = 0;
+let halfCanvasHeight = 0;
+
 /**
  * Represents a single green matrix character falling down a column.
  */
@@ -75,21 +77,18 @@ class MatrixCharacter {
     /**
      * Draws the character on the canvas, applying radial, vertical, proximity, and hover fade.
      * @param {CanvasRenderingContext2D} ctx - The 2D rendering context.
-     * @param {number} canvasWidth - Current canvas width.
      * @param {number} canvasHeight - Current canvas height.
      * @param {Array<HighlightedWord>} activeHighlightedWords - Array of currently active blue words.
      * @param {number} mouseX - Current mouse X position.
      * @param {number} mouseY - Current mouse Y position.
      */
-    draw(ctx, canvasWidth, canvasHeight, activeHighlightedWords, mouseX, mouseY) {
+    draw(ctx, canvasHeight, activeHighlightedWords, mouseX, mouseY) { // canvasWidth removed, use halfCanvasWidth*2 if needed
         // Calculate radial fade factor based on distance from center
-        const centerX = canvasWidth / 2;
-        const centerY = canvasHeight / 2;
-        const distanceX = Math.abs(this.x - centerX);
-        const distanceY = Math.abs(this.y - centerY);
-        const maxDimDistance = Math.sqrt(centerX * centerX + centerY * centerY); // Max distance from center to corner
+        const distanceX = Math.abs(this.x - halfCanvasWidth);
+        const distanceY = Math.abs(this.y - halfCanvasHeight);
+        const maxDimDistance = Math.sqrt(halfCanvasWidth * halfCanvasWidth + halfCanvasHeight * halfCanvasHeight);
         let radialFactor = 1 - (Math.sqrt(distanceX * distanceX + distanceY * distanceY) / maxDimDistance);
-        radialFactor = Math.max(MIN_RADIAL_BRIGHTNESS, radialFactor); // Ensure minimum brightness at edges
+        radialFactor = Math.max(MIN_RADIAL_BRIGHTNESS, radialFactor);
 
         // Calculate vertical fade factor based on Y position
         let verticalFadeFactor = 1.0;
@@ -97,7 +96,7 @@ class MatrixCharacter {
         if (this.y > fadeStartPoint) {
             // Linearly fade from fadeStartPoint to bottom
             verticalFadeFactor = 1 - ((this.y - fadeStartPoint) / (canvasHeight - fadeStartPoint));
-            verticalFadeFactor = Math.max(0, verticalFadeFactor); // Ensure it doesn't go below 0
+            verticalFadeFactor = Math.max(0, verticalFadeFactor);
         }
 
         // Apply extra fade for designated lines
@@ -108,24 +107,28 @@ class MatrixCharacter {
         // Calculate proximity fade factor based on distance to blue words
         let proximityFadeFactor = 1.0; // Starts at no extra fade
         for (const word of activeHighlightedWords) {
-            // Approximate center of the blue word for distance calculation
-            // Use pre-calculated word.width for optimization
-            const wordCenterX = word.x + word.width / 2;
-            const wordCenterY = word.y - HIGHLIGHT_FONT_SIZE / 2;
+            // Optimization: Broad phase check - only calculate if char is roughly within word's influence box + radius
+            if (Math.abs(this.x - (word.x + word.width / 2)) < GLOW_FADE_RADIUS + word.width / 2 &&
+                Math.abs(this.y - (word.y - HIGHLIGHT_FONT_SIZE / 2)) < GLOW_FADE_RADIUS + HIGHLIGHT_FONT_SIZE) {
 
-            const dx = this.x - wordCenterX;
-            const dy = this.y - wordCenterY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+                const wordCenterX = word.x + word.width / 2;
+                const wordCenterY = word.y - HIGHLIGHT_FONT_SIZE / 2; // Approx center
 
-            if (distance < GLOW_FADE_RADIUS) {
-                // Calculate fade strength: 1 at center, 0 at radius edge, scaled by MAX_PROXIMITY_FADE_STRENGTH
-                let fadeStrength = 1 - (distance / GLOW_FADE_RADIUS);
-                fadeStrength = fadeStrength * MAX_PROXIMITY_FADE_STRENGTH;
+                const dx = this.x - wordCenterX;
+                const dy = this.y - wordCenterY;
+                const distanceSq = dx * dx + dy * dy; // Use squared distance to avoid sqrt initially
 
-                // Apply the strongest fade if multiple blue words overlap their influence
-                proximityFadeFactor = Math.min(proximityFadeFactor, 1 - fadeStrength);
+                if (distanceSq < GLOW_FADE_RADIUS * GLOW_FADE_RADIUS) {
+                    const distance = Math.sqrt(distanceSq);
+                    let fadeStrength = (1 - (distance / GLOW_FADE_RADIUS)) * MAX_PROXIMITY_FADE_STRENGTH;
+                    proximityFadeFactor = Math.min(proximityFadeFactor, 1 - fadeStrength);
+                }
             }
         }
+        if (proximityFadeFactor < 0) { // Ensure it does not go below 0
+            proximityFadeFactor = 0;
+        }
+
 
         // Combine all fade factors
         let finalAlpha = radialFactor * verticalFadeFactor * proximityFadeFactor;
@@ -188,6 +191,10 @@ class MatrixCharacter {
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    // Update cached half dimensions
+    halfCanvasWidth = canvas.width / 2;
+    halfCanvasHeight = canvas.height / 2;
+
     columns = Math.floor(canvas.width / FONT_SIZE);
 
     matrixCharacters = []; // Clear existing characters
@@ -359,7 +366,7 @@ function animate() {
     for (let i = 0; i < matrixCharacters.length; i++) {
         const charObj = matrixCharacters[i];
         // Pass VISUAL mouse coordinates to the draw function
-        charObj.draw(ctx, canvas.width, canvas.height, activeHighlightedWords, visualMouseX, visualMouseY);
+        charObj.draw(ctx, canvas.height, activeHighlightedWords, visualMouseX, visualMouseY);
         charObj.update(canvas.height);
     }
     
@@ -380,5 +387,6 @@ function animate() {
 
 // Start the animation loop when the window loads
 window.onload = function() {
+    resizeCanvas(); // Ensure canvas is sized before first animation frame
     animate();
 };

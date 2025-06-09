@@ -1,5 +1,5 @@
 // static/fun-features.js
-import { funConfig } from 'https://sar.s1d.me/static/fun-config.js';
+import { funConfig } from './fun-config.js';
 
 // --- Debounce Utility ---
 function debounce(func, wait) {
@@ -107,9 +107,7 @@ export function initAnimatedCaret() {
         if (match) prefixText = match[0];
     } else if (nameElements.length === 0 && akaContainer.textContent.toLowerCase().startsWith("aka")) {
         // Handle case where .aka might only have the "aka" text and no .aka-name spans initially
-        // This part may not be strictly necessary if decoder always targets it.
     }
-
 
     akaContainer.innerHTML = '';
     const prefixSpan = document.createElement('span');
@@ -128,209 +126,238 @@ export function initAnimatedCaret() {
     });
 }
 
-// --- 4. Decoder Effect ---
-const decoderEffectItems = []; // Array to store elements and their original content
+// --- 4. Decoder Effect (Refactored with requestAnimationFrame) ---
+const decoderElementDataStore = new Map(); // Stores data about elements being decoded
+let activeDecoderItems = []; // Items currently undergoing RAF-driven decoding
+let decoderRafId = null;
+let lastTimestamp = 0; // For RAF loop
 
 function collectDecoderItems() {
     const config = funConfig.decoderEffect;
     if (!config.enabled) return;
-    decoderEffectItems.length = 0; // Clear previous items
+
+    const currentElements = new Set();
 
     document.querySelectorAll(config.targetSelectors.join(', ')).forEach(el => {
-        if (decoderEffectItems.some(item => item.element.contains(el) && item.element !== el)) {
-            return;
+        // Basic check to avoid processing children if parent is already targeted.
+        // This is a simple check; complex nested scenarios might need more robust logic.
+        let parentIsTargeted = false;
+        let parent = el.parentElement;
+        while(parent) {
+            if (decoderElementDataStore.has(parent)) {
+                parentIsTargeted = true;
+                break;
+            }
+            parent = parent.parentElement;
         }
-        if (decoderEffectItems.find(item => item.element === el)) return;
+        if (parentIsTargeted) return;
 
-        el.setAttribute(config.dataAttributeOriginalHTML, el.innerHTML);
-        el.setAttribute(config.dataAttributeOriginalText, el.textContent);
-
-        decoderEffectItems.push({
-            element: el,
-            intervals: [],
-            isDecoding: false
-        });
+        currentElements.add(el);
+        if (!decoderElementDataStore.has(el)) {
+            decoderElementDataStore.set(el, {
+                originalHTML: el.innerHTML,
+                originalText: el.textContent, // Fallback if no HTML or simple text element
+                isDecoding: false // Local flag per element for state
+            });
+        } else {
+            // Element already known, update its content if changed by other means
+            // This helps if DOM is manipulated externally and then decoder runs again
+            const data = decoderElementDataStore.get(el);
+            if (data.originalHTML !== el.innerHTML) data.originalHTML = el.innerHTML;
+            if (data.originalText !== el.textContent) data.originalText = el.textContent;
+        }
     });
+
+    // Clean up data for elements that are no longer in the DOM / targeted
+    for (const el of decoderElementDataStore.keys()) {
+        if (!currentElements.has(el)) {
+            decoderElementDataStore.delete(el);
+        }
+    }
 }
 
-function processDecoderItem(item) {
+
+function decoderLoop(timestamp) {
     const config = funConfig.decoderEffect;
-    if (item.isDecoding || !item.element) return; // Already decoding or element missing
-
-    const el = item.element;
-    const originalText = el.getAttribute(config.dataAttributeOriginalText);
-
-    if (!originalText) { // Should not happen if collectDecoderItems ran
-        // console.warn("Decoder: No original text for item", item.element);
+    if (!config.enabled) {
+        activeDecoderItems = []; // Clear active items if disabled
+        decoderRafId = null;
         return;
     }
-    item.isDecoding = true;
 
-    const originalChars = originalText.split('');
-    // The textContent is already scrambled by triggerAllDecoders before this is called.
-    // So, currentDisplay should reflect that.
-    const currentDisplay = el.textContent.split('');
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    // let deltaTime = timestamp - lastTimestamp; // Can be used if animation is time-delta based
+    lastTimestamp = timestamp;
 
+    activeDecoderItems.forEach(item => {
+        if (!item.elementData.isDecoding) return;
 
-    let revealedCount = 0;
-    originalChars.forEach((originalChar, index) => {
-        if (originalChar.trim() === '') { // Keep whitespace as is
-            currentDisplay[index] = originalChar; // Ensure it's set if scramble missed it
-            revealedCount++;
-            // Check if this is the last character and all are revealed
-            if (revealedCount === originalChars.length && index === originalChars.length - 1) {
-                finalizeDecoding(item, originalText);
+        let textChanged = false;
+        for (let i = 0; i < item.originalChars.length; i++) {
+            const charData = item.charData[i];
+            if (charData.revealed) continue;
+
+            // Scramble phase
+            if (timestamp >= charData.nextScrambleTime) {
+                if (item.originalChars[i].trim() !== '') { // Don't scramble whitespace
+                    item.currentDisplay[i] = config.chars[Math.floor(Math.random() * config.chars.length)];
+                    textChanged = true;
+                }
+                charData.nextScrambleTime = timestamp + config.randomizeInterval;
             }
-            return;
+
+            // Reveal phase
+            if (timestamp >= charData.revealTime) {
+                item.currentDisplay[i] = item.originalChars[i];
+                charData.revealed = true;
+                item.revealedCount++;
+                textChanged = true;
+            }
         }
 
-        // This char is currently scrambled. We need to set an interval to keep it
-        // scrambling until its reveal time.
-        const randomInterval = setInterval(() => {
-            if (!item.isDecoding) {
-                clearInterval(randomInterval);
-                return;
-            }
-            currentDisplay[index] = config.chars[Math.floor(Math.random() * config.chars.length)];
-            el.textContent = currentDisplay.join('');
-        }, config.randomizeInterval);
-        item.intervals.push(randomInterval);
+        if (textChanged) {
+            // For preserveHTML:true, this strategy is simple (text only).
+            // A true HTML-preserving scramble is far more complex (traversing text nodes).
+            item.element.textContent = item.currentDisplay.join('');
+        }
 
-        // Calculate reveal delay based on how many non-whitespace chars have been scheduled for reveal
-        // This ensures sequential reveal of meaningful characters.
-        const nonWhitespaceCharsProcessed = originalChars.slice(0, index + 1).filter(ch => ch.trim() !== '').length;
-        const revealDelayForThisChar = (nonWhitespaceCharsProcessed * config.revealSpeed) + (Math.random() * config.revealSpeed / 3);
-
-
-        setTimeout(() => {
-            if (!item.isDecoding && !item.intervals.includes(randomInterval)) { // Check if decoding stopped
-                return;
-            }
-            clearInterval(randomInterval);
-            item.intervals = item.intervals.filter(id => id !== randomInterval);
-
-            currentDisplay[index] = originalChar;
-            el.textContent = currentDisplay.join('');
-            revealedCount++;
-
-            if (revealedCount === originalChars.length) {
-                finalizeDecoding(item, originalText);
-            }
-        }, revealDelayForThisChar);
+        if (item.revealedCount === item.originalChars.length) {
+            finalizeDecoding(item); // Finalize this specific item
+        }
     });
+
+    activeDecoderItems = activeDecoderItems.filter(item => item.elementData.isDecoding && item.revealedCount < item.originalChars.length);
+
+    if (activeDecoderItems.length > 0) {
+        decoderRafId = requestAnimationFrame(decoderLoop);
+    } else {
+        decoderRafId = null;
+        lastTimestamp = 0; // Reset for next cycle
+    }
 }
 
-
-function finalizeDecoding(item, originalText) {
+function finalizeDecoding(item) {
     const config = funConfig.decoderEffect;
-    item.isDecoding = false; // Mark as not decoding
-    item.intervals.forEach(clearInterval); // Clear any remaining intervals for this item
-    item.intervals = [];
+    item.elementData.isDecoding = false; // Mark as not decoding
 
     if (config.preserveHTML) {
-        const originalHTML = item.element.getAttribute(config.dataAttributeOriginalHTML);
-        item.element.innerHTML = originalHTML;
+        item.element.innerHTML = item.elementData.originalHTML;
     } else {
-        item.element.textContent = originalText; // Ensure exact original text
+        // Ensure exact original text, even if it was only whitespace
+        item.element.textContent = item.elementData.originalText; 
     }
 
-    // MODIFIED: Re-initialize animated caret if the decoded element was its container
     if (funConfig.animatedCaret.enabled && item.element.matches(funConfig.animatedCaret.targetContainerSelector)) {
-        // console.log(`Decoder finished for ${funConfig.animatedCaret.targetContainerSelector}, re-initializing caret.`);
-        setTimeout(initAnimatedCaret, 30); // Short delay to ensure DOM is fully updated
+        setTimeout(initAnimatedCaret, 30);
     }
 }
 
 function triggerAllDecoders() {
     const config = funConfig.decoderEffect;
-    if (!config.enabled || decoderEffectItems.length === 0) return;
+    if (!config.enabled) return;
 
-    // Stop any ongoing decodings and restore original content first
-    decoderEffectItems.forEach(item => {
-        if (item.isDecoding) {
-            item.isDecoding = false;
-            item.intervals.forEach(clearInterval);
-            item.intervals = [];
-        }
-        // Always restore from attributes before a new cycle
-        const originalText = item.element.getAttribute(config.dataAttributeOriginalText);
-        if (config.preserveHTML) {
-            item.element.innerHTML = item.element.getAttribute(config.dataAttributeOriginalHTML);
-        } else if (originalText) {
-            item.element.textContent = originalText;
-        }
-    });
+    // Stop any ongoing decodings by clearing active items and letting RAF loop naturally end
+    activeDecoderItems.forEach(item => finalizeDecoding(item)); // Finalize/restore all
+    activeDecoderItems = [];
+    if (decoderRafId) {
+        cancelAnimationFrame(decoderRafId);
+        decoderRafId = null;
+    }
+    lastTimestamp = 0;
 
-    // MODIFIED: Perform initial (or re-cycle) scramble synchronously
-    decoderEffectItems.forEach(item => {
-        const el = item.element;
-        const originalText = el.getAttribute(config.dataAttributeOriginalText);
-        if (originalText) {
-            if (config.preserveHTML) {
-                // If preserving HTML, we need to be more careful.
-                // A simple textContent scramble might break it if it hasn't been restored to full HTML yet.
-                // For now, with preserveHTML, the initial scramble is tricky if we want to see it before reveal.
-                // The most straightforward is to let processDecoderItem handle scrambling for preserveHTML.
-                // If NOT preserving HTML, we can scramble textContent here.
-                if (!config.preserveHTML) {
-                     el.textContent = originalText.split('').map(char =>
-                        char.trim() === '' ? char : config.chars[Math.floor(Math.random() * config.chars.length)]
-                    ).join('');
-                } else {
-                    // For preserveHTML, ensure it's reset to original HTML, processDecoderItem will handle text nodes.
-                    // The "instant scramble" for preserveHTML is harder. We might need to walk text nodes.
-                    // For now, preserveHTML will show original, then text nodes will animate.
-                     el.innerHTML = el.getAttribute(config.dataAttributeOriginalHTML);
-                }
-            } else {
-                 el.textContent = originalText.split('').map(char =>
-                    char.trim() === '' ? char : config.chars[Math.floor(Math.random() * config.chars.length)]
-                ).join('');
+    // Collect / re-collect items and their original state
+    collectDecoderItems();
+
+    decoderElementDataStore.forEach((data, el) => {
+        const originalTextForLogic = data.originalText; // Use textContent for char array logic
+        if (!originalTextForLogic && originalTextForLogic !== "") return; // Allow empty string
+
+        data.isDecoding = true; // Set isDecoding on the stored data object
+
+        const newItem = {
+            element: el,
+            elementData: data, // Reference to the data in decoderElementDataStore
+            originalChars: originalTextForLogic.split(''),
+            currentDisplay: originalTextForLogic.split('').map(char =>
+                char.trim() === '' ? char : config.chars[Math.floor(Math.random() * config.chars.length)]
+            ),
+            revealedCount: 0,
+            charData: [] // Stores revealTime, nextScrambleTime, revealed status per char
+        };
+
+        // Initial display is scrambled text (primarily for textContent)
+        if (!config.preserveHTML || (config.preserveHTML && newItem.element.children.length === 0)) {
+            newItem.element.textContent = newItem.currentDisplay.join('');
+        } else if (config.preserveHTML) {
+            // If preserving HTML, and it's complex, the initial visual state is original HTML.
+            // The textContent will be virtually scrambled and applied if it doesn't break structure.
+            // For simplicity with complex HTML, textContent changes during animation are okay,
+            // then full innerHTML is restored.
+            newItem.element.innerHTML = data.originalHTML; // Start with original HTML
+            // The currentDisplay is still based on originalText for logic, but visual is originalHTML
+        }
+
+        let nonWhitespaceCharsProcessed = 0;
+        // Each element gets its own base time for starting, including initialDelay and a random offset
+        const elementBaseTime = performance.now() + config.initialDelay + (Math.random() * config.revealSpeed * 5);
+
+        newItem.originalChars.forEach((originalChar, index) => {
+            let charRevealTime = elementBaseTime; // Default for whitespace
+            if (originalChar.trim() !== '') {
+                nonWhitespaceCharsProcessed++;
+                // Calculate reveal time for this specific character
+                charRevealTime = elementBaseTime + (nonWhitespaceCharsProcessed * config.revealSpeed);
             }
+
+            newItem.charData[index] = {
+                revealTime: charRevealTime,
+                nextScrambleTime: elementBaseTime + Math.random() * config.randomizeInterval, // Scramble starts around elementBaseTime
+                revealed: originalChar.trim() === '' // Whitespace is instantly "revealed"
+            };
+
+            if (originalChar.trim() === '') {
+                 newItem.revealedCount++;
+            }
+        });
+        
+        // If all characters are whitespace, finalize immediately
+        if (newItem.revealedCount === newItem.originalChars.length) {
+            finalizeDecoding(newItem);
+        } else {
+            activeDecoderItems.push(newItem);
         }
     });
 
-    // Then start the timed reveal process for each item with a random delay
-    decoderEffectItems.forEach((item) => {
-        // MODIFIED: Random delay for each element's start
-        // The base initialDelay is from config, then add a random component.
-        const randomStartOffset = Math.random() * (config.revealSpeed * 5); // Random up to 5 chars reveal time
-        const startDelay = config.initialDelay + randomStartOffset;
-
-        setTimeout(() => {
-            processDecoderItem(item);
-        }, startDelay);
-    });
+    if (activeDecoderItems.length > 0 && !decoderRafId) {
+        lastTimestamp = performance.now(); // Set initial timestamp for the loop
+        decoderRafId = requestAnimationFrame(decoderLoop);
+    }
 }
-
 
 export function initDecoderEffect() {
     const config = funConfig.decoderEffect;
     if (!config.enabled) return;
 
-    collectDecoderItems(); // Initial collection
-
-    // MODIFIED: Trigger decoders (which now includes initial scramble) after initialDelay
-    // The initialDelay in triggerAllDecoders' setTimeout for processDecoderItem will be relative to this first call.
-    // No, triggerAllDecoders should be called after config.initialDelay, and *it* handles the per-item delays.
-    setTimeout(triggerAllDecoders, config.initialDelay);
+    // Initial collection and trigger is now handled by a slight delay to ensure DOM is ready.
+    // The initialDelay in config is for per-element animation start, not this first call.
+    setTimeout(() => {
+        collectDecoderItems(); // Initial collection
+        triggerAllDecoders();  // Start animations
+    }, 50); // Small delay to ensure other DOM manipulations (if any) are done.
 
 
     if (config.loopInterval > 0) {
         setInterval(() => {
-            collectDecoderItems(); // Re-collect in case DOM changed
+            // triggerAllDecoders internally calls collectDecoderItems
             triggerAllDecoders();
-        }, config.loopInterval + config.initialDelay); // Ensure loop timing is consistent
+        }, config.loopInterval + config.initialDelay); // Add initialDelay to loopInterval for more predictable restart visual
     }
 
-    // MODIFIED: Add debounced resize handler
     const debouncedRestartDecoder = debounce(() => {
-        // console.log("Window resized, re-initializing decoder effect.");
         if (funConfig.decoderEffect.enabled) { // Check again in case it was disabled
-            collectDecoderItems();
             triggerAllDecoders();
         }
-    }, 300); // 300ms debounce time
+    }, 300); 
 
     window.addEventListener('resize', debouncedRestartDecoder);
 }
