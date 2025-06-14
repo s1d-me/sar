@@ -1,6 +1,5 @@
-# auri.lol
+# sar.s1d
+[sar.s1d.me](https://sar.s1d.me/)
 
-my portfolio website thing 
+my portfolio website thing but better
 
-![image](https://github.com/user-attachments/assets/17551b0b-ef19-4ec2-95ac-957216168732)
- 
